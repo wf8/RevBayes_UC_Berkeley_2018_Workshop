@@ -20,6 +20,9 @@
 \usepackage{textcomp}
 \newcommand{\textapprox}{\raisebox{0.5ex}{\texttildelow}}
 
+%\titlegraphic{\includegraphics[scale=0.1]{figures/Graphical_model_for_HMM.PNG}}
+\addtobeamertemplate{title page}{\center\includegraphics[scale=.4]{figures/Hmm_temporal_bayesian_net.pdf}\\\medskip}{}
+
 \title{Specifying Graphical Models in \texttt{RevBayes}}
 %\subtitle{UC Berkeley Workshop 2018}
 \author{Will Freyman}
@@ -33,9 +36,11 @@
 }
 \date{UC Berkeley, February 26-27 2018}
 
+
 \beamertemplatenavigationsymbolsempty
 
 \setbeamercolor{alerted text}{fg=Emerald}
+
 
 \begin{document}
 
@@ -321,6 +326,46 @@
 \end{frame}
 
 
+\begin{frame}
+    \small
+    \begin{center}
+    \alert{linear regression as a graphical model}\\
+    \includegraphics[scale=0.4]{figures/linear_regression.pdf}\\
+    \smallskip
+    $y = \beta x + \alpha + \epsilon$\\
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \small
+    \begin{center}
+    \alert{linear regression as a graphical model}\\
+    \includegraphics[scale=0.4]{figures/linear_regression.pdf}\\
+    \smallskip
+    $\mu_y = \beta x + \alpha$\\
+    $y \sim \text{Normal}(\mu_y, \sigma_{\epsilon})$\\
+    \end{center}
+\end{frame}
+
+
+\begin{frame}
+    \small
+    \begin{center}
+    \alert{Bayesian linear regression}\\
+    \bigskip
+    \bigskip
+    $\mu_y = \beta x + \alpha$\\
+    $y \sim \text{Normal}(\mu_y, \sigma_{\epsilon})$\\
+    \bigskip
+    \bigskip
+    We need some priors!\\
+    \bigskip
+    \bigskip
+    $\beta \sim \text{Normal}(\mu=0, \sigma^2=1)$\\
+    $\alpha \sim \text{Normal}(\mu=0, \sigma^2=1)$\\
+    $\sigma_{\epsilon} \sim \text{Exponential}(\lambda=1)$\\
+    \end{center}
+\end{frame}
 
 % in this workshop the goal is to think abstractly in terms of graphical models, so we will treat these
 % aspects separately. our first

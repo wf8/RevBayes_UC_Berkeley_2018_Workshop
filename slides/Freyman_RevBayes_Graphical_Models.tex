@@ -1,0 +1,358 @@
+\PassOptionsToPackage{dvipsnames}{xcolor}
+\documentclass[mathserif]{beamer}
+%\documentclass[mathserif,handout]{beamer}
+%\usetheme{Pittsburgh}
+%\usecolortheme{beaver}
+
+%\usepackage{helvet}
+\usepackage{tgadventor}
+\usepackage{tikz}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{graphicx}
+\usepackage[customcolors]{hf-tikz}
+\usepackage{ulem}
+
+% get the skull symbol from arevmath package
+\DeclareSymbolFont{extraup}      {U}{zavm}{m}{n}
+\DeclareMathSymbol{\skull}{\mathalpha}{extraup}{119}
+
+% approx symbol
+\usepackage{textcomp}
+\newcommand{\textapprox}{\raisebox{0.5ex}{\texttildelow}}
+
+\title{Specifying Graphical Models in \texttt{RevBayes}}
+%\subtitle{UC Berkeley Workshop 2018}
+\author{Will Freyman}
+\institute{
+  Department of Integrative Biology\\
+  University of California, Berkeley\\
+  \medskip
+  \color{Emerald}freyman@berkeley.edu \\
+  http://willfreyman.org
+
+}
+\date{UC Berkeley, February 26-27 2018}
+
+\beamertemplatenavigationsymbolsempty
+
+\setbeamercolor{alerted text}{fg=Emerald}
+
+\begin{document}
+
+
+\frame{\titlepage}
+
+\begin{frame}
+    \begin{block}{Workshop goals:}
+    \begin{itemize}
+        \item not simply demonstrate ``standard'' phylogenetic analyses in \texttt{RevBayes}
+        \item instead we'll explore the flexibility of a graphical modeling framework 
+        \item use graphical models to see how the models underlying tree inference and downstream tree use (comparative methods) are linked
+        \item enable participants to specify custom and unique phylogenetic analyses in \texttt{RevBayes}
+    \end{itemize}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}
+    \begin{block}{What are we doing in phylogenetics?}
+    \begin{itemize}
+        \item ``inference''? (i.e. statistical inference?)
+        \item ``learning''? (i.e. machine learning?)
+        \item ``prediction''?
+    \end{itemize}
+    \bigskip
+        In a probabilistic framework (maximum likelihood or Bayesian) 
+        inference and learning are the same\\
+    \bigskip
+        When we ``train'' a machine learning algorithm we are doing parameter estimation\\
+    \bigskip
+        The field of machine learning includes camps that use principled probabilistic approaches and camps that use heuristic ad hoc methods (like in phylogenetics!)\\
+    \bigskip
+        In phylogenetics we should be doing more \alert{prediction}! \\
+    i.e. model adequacy/posterior predictive tests
+    \end{block}
+\end{frame}
+
+
+\begin{frame}
+    \begin{block}{What is a model?}
+    \begin{itemize}
+        \item in statistics?
+        \item in machine learning?
+        \item in biology?
+    \end{itemize}
+    \end{block}
+    \begin{block}{maybe:}
+    \begin{itemize}
+     \item a way to relate data to hypotheses?
+        \begin{itemize}
+            \item what about heuristic or ad hoc approaches? 
+            \item is parsimony in phylogenetics a model, an algorithm, or a philosophy?
+        \end{itemize}
+     \item a set of assumptions about the data-generating process?
+     \item ``a formal representation of a theory''?
+     \item a set of mathematical equations that relate one or more random variables?
+    \end{itemize}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}
+    \begin{block}{The distinction between models and algorithms:}
+    \bigskip
+    \begin{tabular}{ c | c }
+        model & algorithm \\
+        \hline
+        phylogenetic models & pruning algorithm \\
+        Bayesian graphical model & belief propagation \\
+        neural networks & backpropagation \\
+        Hidden Markov model &  forward-backward \\
+        k-means clustering &  Lloyd's algorithm \\
+        linear regression & least-squares \\
+    \end{tabular} \\
+    \bigskip
+        Learning algorithms typically either optimize $\hat{\theta}$ or integrate to infer $p(\theta|D)$ \\
+    \bigskip
+        They are often \textit{very similar} and can be used with other models \\
+    \bigskip
+        Any well defined model can be treated in a \textit{probabilistic} framework and
+        then we can use Bayesian \alert{or} maximum likelihood approaches
+    \end{block}
+\end{frame}
+
+
+\begin{frame}
+        \small
+    \begin{block}{Probabilistic models:}
+        \bigskip
+        Instead of a hodgepodge of different heuristic methods
+        these models use the principles of probability theory \\
+        \bigskip
+        Why use them?
+        \begin{itemize}
+            \item Quantify uncertainty: they know when they don't know
+                \begin{itemize}
+                    \item what is the best prediction/decision/inference given data? 
+                    \item what is the best model/hypothesis given the data? 
+                    \item do I need more/different data? 
+                \end{itemize}
+            \item natural complexity control 
+                \begin{itemize}
+                    \item preventing overfitting / regularization
+                \end{itemize}
+            \item modularity
+                \begin{itemize}
+                    \item models as ``lego kits''
+                    \item different inferential algorithms can use the same model
+                    \item different models can use the same inferential algorithm
+                \end{itemize}
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+
+
+\begin{frame}
+\small
+    \frametitle{Discriminative vs Generative Models}
+    \begin{block}{Discriminative (or conditional) models:}
+    \begin{enumerate}
+        \item models a response variable conditioned on a predictor variable
+        \item models the conditional distribution $p(y|x)$
+        \item makes fewer assumptions about the data: $p(x)$ not necessary
+    \end{enumerate}
+    \end{block}
+    \begin{block}{Phylogenetic examples:} 
+    \begin{itemize}
+        \item estimating divergence times over a fixed topology
+        \item estimating ancestral states on a fixed tree
+        \item estimating shifts in diversification rates over a fixed tree
+    \end{itemize}
+    \end{block}
+\end{frame}
+\begin{frame}
+\small
+    \frametitle{Discriminative vs Generative Models}
+    \begin{block}{Generative models:}
+    \begin{enumerate}
+        \item models the entire process used to generate the data
+        \item models the joint distribution $p(x, y)$
+        \item makes more assumptions about the data: need to define $p(x)$ 
+        \item richer representation of the relations between variables
+        \item more powerful: allows us to compute $p(y|x)$ or $p(x|y)$ 
+        \item more powerful: can simulate both $x$ and $y$
+    \end{enumerate}
+    \end{block}
+    \begin{block}{Phylogenetic examples:} 
+    \begin{itemize}
+        \item jointly estimating divergence times and the tree topology
+        \item jointly estimating ancestral states and the tree
+        \item jointly estimating shifting diversification rates and the tree
+    \end{itemize}
+    \end{block}
+\end{frame}
+
+
+
+\begin{frame}
+
+    \frametitle{What is a graphical model?}
+    \small
+    \begin{block}{Also called:}
+    \begin{enumerate}
+        \item Bayesian networks
+        \item belief networks
+        \item causal networks
+    \end{enumerate}
+    \end{block}
+    \begin{block}{A useful way to represent a probabilistic model: a joint distribution of random variables.}
+    \end{block}
+    We can specify both generative and discriminative models as graphical models. 
+\end{frame}
+
+
+\begin{frame}
+
+    \frametitle{What is a graphical model?}
+    \small
+    \begin{block}{Nodes represent variables and edges represent conditional dependencies:}
+    \begin{center}
+    \includegraphics[scale=0.3]{figures/graphical_model.png}\\
+        \medskip
+        $p(\theta,\mathcal{D}) = p(\theta) \Big[ \displaystyle\sum^N_{i=1} p(x_i|\theta) \Big]$
+    \end{center}
+    \end{block}
+    \begin{textblock*}{10cm}(1cm,9cm)
+    \tiny Image from Murphy (2012)
+    \end{textblock*}
+\end{frame}
+
+
+\begin{frame}
+
+    \frametitle{What is a graphical model?}
+    \small
+    \begin{center}
+    \includegraphics[scale=0.3]{figures/graphical_model_legend.png}\\
+    \end{center}
+    \begin{textblock*}{10cm}(1cm,9cm)
+    \tiny Image from H\"oehna et al. (2014)
+    \end{textblock*}
+\end{frame}
+
+\begin{frame}
+
+    \small
+    \begin{center}
+    \alert{phylogenetic graphical model}
+    \includegraphics[scale=0.3]{figures/phylo_graphical.png}\\
+    \end{center}
+    \begin{textblock*}{10cm}(1cm,9.2cm)
+    \tiny Image from H\"oehna et al. (2014)
+    \end{textblock*}
+\end{frame}
+
+
+\begin{frame}
+
+    \small
+    \begin{center}
+    \alert{phylogenetic graphical models as modules}\\
+    \bigskip
+    \includegraphics[scale=0.3]{figures/graphical_modular.png}\\
+    \end{center}
+    \begin{textblock*}{10cm}(1cm,9cm)
+    \tiny Image from H\"oehna et al. (2014)
+    \end{textblock*}
+\end{frame}
+
+
+\begin{frame}
+    \small
+    \begin{center}
+    \alert{assembling phylogenetic models like lego kits}\\
+    \bigskip
+    \includegraphics[scale=0.3]{figures/graphical_lego_kit.png}\\
+    \end{center}
+    \begin{textblock*}{10cm}(1cm,9.2cm)
+    \tiny Image from H\"oehna et al. (2014)
+    \end{textblock*}
+\end{frame}
+
+
+\begin{frame}
+    \begin{block}{Is the graphical model paradigm really helpful?}
+    \bigskip
+    \small
+    Disadvantages: 
+    \begin{enumerate}
+        \item steep learning curve...
+        \begin{itemize}
+            \item constant, stochastic, deterministic nodes
+            \item clamping
+            \item MCMC proposals
+        \end{itemize}
+    \end{enumerate}
+    Advantages: 
+    \begin{enumerate}
+        \item transparency: all modeling assumptions are specified
+        \item power and flexibility: build custom models that test your specific hypotheses 
+        \item efficiency: customize inference algorithm to efficiently perform inference 
+        \item applicability: the same concepts are widely used in many probabilistic programming languages like Stan, BUGS, Edward, PyMC3... and \texttt{Rev}!
+    \end{enumerate}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}
+
+    \small
+    \begin{block}{The \texttt{Rev} probabilistic programming language:}
+    \bigskip
+    Most \texttt{Rev} scripts have two important aspects woven together: 
+    \begin{enumerate}
+        \item specify the graphical model
+        \item define the inference algorithm (MCMC moves, etc.)
+    \end{enumerate}
+    Since our goal is think abstractly in terms of graphical models
+     we're going to learn these two aspects separately.
+    \end{block}
+\end{frame}
+
+
+
+% in this workshop the goal is to think abstractly in terms of graphical models, so we will treat these
+% aspects separately. our first
+% exercise will be to specify a simple linear regression
+
+% explain Bayesian linear regression
+
+% walk through discriminative model script
+
+% exercise: modify this to make the model fully generative
+
+
+% walk through setting up MCMC for this model to infer parameters
+
+
+% that exercise was to show you can set up any type of model using a probabilstic
+% programming language like Rev
+% - classification models
+% - time series models
+% - neural networks
+% - etc
+
+% now let's return to phylogenetics
+
+
+% walk through discriminative model script
+
+% exercise: modify this to make the model fully generative
+
+
+% walk through setting up MCMC for this model to infer parameters
+
+
+
+\end{document}

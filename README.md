@@ -35,3 +35,9 @@ Please install the latest version (1.07) of [RevBayes](http://revbayes.com) for 
 ### Scripts and data
 * [scripts](https://github.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/tree/master/src)
 * [data](https://github.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/tree/master/data)
+
+The easiest way is to clone this entire repo:
+```
+git clone https://github.com/wf8/RevBayes_UC_Berkeley_2018_Workshop.git
+```
+

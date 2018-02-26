@@ -4,6 +4,7 @@
 ### February 26-27 2018, 12:00 PM to 4:00 PM
 ##### Instructor: Will Freyman <http://willfreyman.org>
 ##### Coordinator: Carrie Tribble <https://carrietribble.weebly.com/>
+##### Funded in part by UC Berkeley's Data Science program [DS421](http://ds421.berkeley.edu/)
 
 [RevBayes](http://revbayes.com) represents a fundamental re-conception of phylogenetic modeling by adopting a graphical model framework in
 which all probabilistic models are comprised of modular components that can be assembled in a myriad of ways. 

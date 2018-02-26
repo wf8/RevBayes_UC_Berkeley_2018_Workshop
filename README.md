@@ -2,8 +2,8 @@
 # RevBayes Workshop: Phylogenetic graphical models and Bayesian inference
 ### UC Berkeley, VLSB 1002
 ### February 26-27 2018, 12:00 PM to 4:00 PM
-### Instructor: Will Freyman <http://willfreyman.org>
-### Coordinator: Carrie Tribble <https://carrietribble.weebly.com/>
+##### Instructor: Will Freyman <http://willfreyman.org>
+##### Coordinator: Carrie Tribble <https://carrietribble.weebly.com/>
 
 [RevBayes](http://revbayes.com) represents a fundamental re-conception of phylogenetic modeling by adopting a graphical model framework in
 which all probabilistic models are comprised of modular components that can be assembled in a myriad of ways. 
@@ -16,17 +16,22 @@ Previous experience with [RevBayes](http://revbayes.com) is not necessary, thoug
 
 This workshop is open to anyone interested, including students, staff, post-docs, and faculty from IB and beyond. 
 
+Please install the latest version (1.07) of [RevBayes](http://revbayes.com) for this workshop. Some of the state-dependent speciation and extinction analyses will not work with earlier versions.
+
 ### Schedule
 
-* February 26
+* February 26 (noon - 4 PM) [[slides]](https://raw.githubusercontent.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/blob/master/slides/Freyman_RevBayes_Graphical_Models.pdf)
     - What is a graphical model?
     - Discriminative vs generative models
     - Linear regression as a graphical model
     - Ancestral state estimation as a graphical model
     - Linking phylo comparative methods and tree inference through generative graphical models
-* February 27
+* February 27 (noon - 4 PM)
     - Diversification models
     - State-dependent speciation and extinction
     - Hidden Markov models and diversification
     - Other models?
 
+### Scripts and data
+* [scripts](https://github.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/tree/master/src)
+* [data](https://github.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/tree/master/data)

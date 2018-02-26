@@ -1,40 +1,38 @@
 \PassOptionsToPackage{dvipsnames}{xcolor}
 \documentclass[mathserif]{beamer}
-%\documentclass[mathserif,handout]{beamer}
-%\usetheme{Pittsburgh}
-%\usecolortheme{beaver}
 
-%\usepackage{helvet}
 \usepackage{tgadventor}
-\usepackage{tikz}
 \usepackage[absolute,overlay]{textpos}
-\usepackage{graphicx}
-\usepackage[customcolors]{hf-tikz}
-\usepackage{ulem}
 
-% get the skull symbol from arevmath package
-\DeclareSymbolFont{extraup}      {U}{zavm}{m}{n}
-\DeclareMathSymbol{\skull}{\mathalpha}{extraup}{119}
+\usepackage{listings}
+\definecolor{light-gray}{gray}{0.9}
+\lstset{columns=fullflexible, 
+        basicstyle=\ttfamily\footnotesize,
+        breaklines=true,
+        backgroundcolor=\color{light-gray},
+        xleftmargin=0.5cm,
+        frame=tlbr,
+        framesep=4pt,
+        framerule=0pt}
+
 
 % approx symbol
 \usepackage{textcomp}
 \newcommand{\textapprox}{\raisebox{0.5ex}{\texttildelow}}
 
-%\titlegraphic{\includegraphics[scale=0.1]{figures/Graphical_model_for_HMM.PNG}}
 \addtobeamertemplate{title page}{\center\includegraphics[scale=.4]{figures/Hmm_temporal_bayesian_net.pdf}\\\medskip}{}
 
 \title{Specifying Graphical Models in \texttt{RevBayes}}
-%\subtitle{UC Berkeley Workshop 2018}
 \author{Will Freyman}
 \institute{
-  Department of Integrative Biology\\
-  University of California, Berkeley\\
+  Department of Ecology, Evolution \& Behavior \\
+  University of Minnesota \\
   \medskip
-  \color{Emerald}freyman@berkeley.edu \\
+  \color{Emerald}willfreyman@gmail.com \\
   http://willfreyman.org
 
 }
-\date{UC Berkeley, February 26-27 2018}
+\date{UC Berkeley Workshop, February 26-27 2018}
 
 
 \beamertemplatenavigationsymbolsempty
@@ -317,11 +315,19 @@
     \bigskip
     Most \texttt{Rev} scripts have two important aspects woven together: 
     \begin{enumerate}
-        \item specify the graphical model
-        \item define the inference algorithm (MCMC moves, etc.)
+        \item the graphical model specification
+        \item the inference algorithm specification (MCMC moves, etc.)
     \end{enumerate}
     Since our goal is think abstractly in terms of graphical models
-     we're going to learn these two aspects separately.
+     we're going to learn these two aspects separately. \\
+     \bigskip
+        In \texttt{Rev} we can specify any type of probabilistic model, not just phylogenetic models:
+    \begin{itemize}
+        \item classification models
+        \item time series models
+        \item neural networks
+        \item etc...
+    \end{itemize}
     \end{block}
 \end{frame}
 
@@ -367,29 +373,129 @@
     \end{center}
 \end{frame}
 
-% in this workshop the goal is to think abstractly in terms of graphical models, so we will treat these
-% aspects separately. our first
-% exercise will be to specify a simple linear regression
+\begin{frame}[fragile]
+Now let's program the model in \texttt{Rev}...\\
+    \bigskip
+    First clone the workshop's repo and start \texttt{rb}:\\
+    \bigskip
+    \begin{lstlisting}
+git clone https://github.com/wf8/RevBayes_UC_Berkeley_2018_Workshop.git
+cd RevBayes_UC_Berkeley_2018_Workshop
+rb
+    \end{lstlisting}
+\bigskip
+    The full example scripts are in the \texttt{src/} directory, but instead of using \texttt{source()}
+    let's walk through the script interactively...
+\end{frame}
 
-% explain Bayesian linear regression
+\begin{frame}[fragile]
+    Our observed data are constant nodes:\\
+    \bigskip
+    \begin{lstlisting}
+x_obs <- readDataDelimitedFile(file="data/x.csv", header=FALSE, delimiter=",")[1]
+y_obs <- readDataDelimitedFile(file="data/y.csv", header=FALSE, delimiter=",")[1]
+    \end{lstlisting}
+\bigskip
+    Take a look at \texttt{x\_obs} and \texttt{y\_obs}: they are simply vectors containing these points:\\
+    \center
+    \includegraphics[scale=0.2]{figures/linear_regression.pdf}\\
+\end{frame}
 
-% walk through discriminative model script
 
-% exercise: modify this to make the model fully generative
+\begin{frame}[fragile]
+    We'll specify relatively uninformative priors for our parameters. These are stochastic nodes:\\
+    \bigskip
+    \begin{lstlisting}
+beta ~ dnNormal(0, 1)
+alpha ~ dnNormal(0, 1)
+sigma ~ dnExponential(1)
+    \end{lstlisting}
+\end{frame}
 
 
-% walk through setting up MCMC for this model to infer parameters
+\begin{frame}[fragile]
+And now deterministic nodes for $\mu_y$ and stochastic nodes for $y$:\\
+    \bigskip
+    \begin{lstlisting}
+for (i in 1:x_obs.size()) {
+    mu_y[i] := (beta * x_obs[i]) + alpha
+    y[i] ~ dnNormal(mu_y[i], sigma)
+}
+    \end{lstlisting}
+\bigskip
+    We have now simulated values of $y$ conditioned on $x$. 
+    So this is a \alert{discriminative} model.  \\
+\bigskip
+What happens if we set the value of $\beta$ or $\alpha$ to something else?
+    Try the \texttt{setValue()} and \texttt{redraw()} member methods.
+\end{frame}
 
 
-% that exercise was to show you can set up any type of model using a probabilstic
-% programming language like Rev
-% - classification models
-% - time series models
-% - neural networks
-% - etc
+\begin{frame}[fragile]
+To estimate parameter values, we need to \alert{clamp}
+the observed values of $y$:
+    \bigskip
+    \begin{lstlisting}
+for (i in 1:x_obs.size()) {
+    mu_y[i] := (beta * x_obs[i]) + alpha
+    y[i] ~ dnNormal(mu_y[i], sigma)
+    y[i].clamp(y_obs[i])
+}
 
-% now let's return to phylogenetics
+mymodel = model(beta)
+    \end{lstlisting}
+\bigskip
+    So now we have specified the full linear regression model in a \alert{discriminative} form: $y$ conditioned on $x$.  \\
+\bigskip
+Let's set up the MCMC...
+\end{frame}
 
+
+\begin{frame}[fragile]
+We need at least one MCMC move for each parameter we want to estimate:
+    \bigskip
+    \begin{lstlisting}
+moves[1] = mvSlide(beta)
+moves[2] = mvSlide(alpha)
+moves[3] = mvSlide(sigma)
+    \end{lstlisting}
+\bigskip
+We also need monitors for the MCMC:
+    \bigskip
+    \begin{lstlisting}
+monitors[1] = mnScreen()
+monitors[2] = mnModel("output/linear_regression.log")
+    \end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]
+Now run the MCMC:
+    \bigskip
+    \begin{lstlisting}
+mymcmc = mcmc(mymodel, moves, monitors)
+mymcmc.run(10000)
+    \end{lstlisting}
+\bigskip
+Look at the results in Tracer. What estimates do you get for $\alpha$, $\beta$, and $\sigma$?\\
+    \bigskip
+The true values were $\alpha = -2$, $\beta = 0.5$, and $\sigma = 0.2$.\\
+    \bigskip
+    \bigskip
+    \alert{Exercise:} modify this to be a fully \alert{generative} model.\\
+    \bigskip
+    \alert{Exercise:} experiment with different MCMC moves to make the analysis converge more efficiently.
+\end{frame}
+
+
+\begin{frame}
+    \begin{block}{Finally phylogenetics!}
+        \bigskip
+        Let's use the distinction between a \alert{discriminative} (or conditional) model and
+        a \alert{generative} model to explore the link between tree inference models
+        and comparative methods....
+    \end{block}
+\end{frame}
 
 % walk through discriminative model script
 

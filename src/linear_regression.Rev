@@ -1,19 +1,10 @@
 
 #
+# Bayesian linear regression example
 #
-#
+# by Will Freyman
 #
 
-#a = FALSE
-#for (i in 1:50) {
-#    x[i] ~ dnNormal(2, 1)
-#    mu_y[i] := (0.5 * x[i]) - 2
-#    y[i] ~ dnNormal(mu_y[i], 0.2)
-#    write(x[i], " ", filename="x.csv", append=a, separator=",")
-#    write(y[i], " ", filename="y.csv", append=a, separator=",")
-#    a = TRUE
-#}
-#q()
 
 x_obs <- readDataDelimitedFile(file="data/x.csv", header=FALSE, delimiter=",")[1]
 y_obs <- readDataDelimitedFile(file="data/y.csv", header=FALSE, delimiter=",")[1]
@@ -39,3 +30,5 @@ monitors[2] = mnModel("output/linear_regression.log")
 
 mymcmc = mcmc(mymodel, moves, monitors)
 mymcmc.run(10000)
+
+q()

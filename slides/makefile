@@ -5,7 +5,7 @@ all:
 	#bibtex $(PROJECT)
 	pdflatex $(PROJECT).tex
 	#pdflatex $(PROJECT).tex
-	rm *.nav *.snm *.aux *.bbl *.blg *.log *.out *.xwm *.toc *-blx.bib *.run.xml
+	rm *.vrb *.nav *.snm *.aux *.bbl *.blg *.log *.out *.xwm *.toc *-blx.bib *.run.xml
 
 rtf:
 	latex2rtf $(PROJECT).tex

@@ -1,0 +1,51 @@
+
+#
+# An example of estimating ancestral states conditioned on a fixed tree.
+#
+# by Will Freyman
+#
+
+
+# read in data
+tree_obs <- readTrees("data/phylo.tree")[1]
+morph_data <- readCharacterData("data/phylo_morph.nex")
+
+# character state transition rate matrix
+q_01 ~ dnExponential(10)
+q_10 ~ dnExponential(10)
+Q_morph := fnFreeK([q_01, q_10], rescaled=FALSE)
+
+# root frequencies
+pi_morph ~ dnDirichlet([1,1])
+
+# phylo CTMC
+ctmc_morph ~ dnPhyloCTMC(tree_obs, Q=Q_morph, rootFrequencies=pi_morph, nSites=1, type="Standard")
+ctmc_morph.clamp(morph_data)
+
+mymodel = model(ctmc_morph)
+
+# MCMC moves
+moves[1] = mvScale(q_01)
+moves[2] = mvScale(q_10)
+moves[3] = mvSimplexElementScale(pi_morph)
+
+# MCMC monitors
+monitors[1] = mnScreen(printgen=10)
+monitors[2] = mnModel(printgen=10, filename="output/conditional.log")
+monitors[3] = mnJointConditionalAncestralState(printgen=10, 
+                                               filename="output/conditional_anc.log", 
+                                               tree=tree_obs, 
+                                               ctmc=ctmc_morph, 
+                                               type="Standard")
+
+# run the MCMC
+mymcmc = mcmc(mymodel, moves, monitors)
+mymcmc.run(10000)
+
+# summarize ancestral states
+anc_trace = readAncestralStateTrace("output/conditional_anc.log")
+ancestralStateTree(tree_obs, 
+                   ancestral_state_trace_vector=anc_trace, 
+                   file="output/map_anc_conditional.tree")
+
+q()

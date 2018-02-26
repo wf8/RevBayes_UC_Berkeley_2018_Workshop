@@ -414,7 +414,7 @@ sigma ~ dnExponential(1)
 
 
 \begin{frame}[fragile]
-And now deterministic nodes for $\mu_y$ and stochastic nodes for $y$:\\
+Deterministic nodes for $\mu_y$ and stochastic nodes for $y$:\\
     \bigskip
     \begin{lstlisting}
 for (i in 1:x_obs.size()) {
@@ -493,17 +493,181 @@ The true values were $\alpha = -2$, $\beta = 0.5$, and $\sigma = 0.2$.\\
         \bigskip
         Let's use the distinction between a \alert{discriminative} (or conditional) model and
         a \alert{generative} model to explore the link between tree inference models
-        and comparative methods....
+        and comparative methods...\\
+        \bigskip
+        One of the most basic comparative methods is ancestral state estimation.
     \end{block}
 \end{frame}
 
-% walk through discriminative model script
 
-% exercise: modify this to make the model fully generative
+\begin{frame}[fragile]
+    \begin{block}{Ancestral state estimation conditioned over a tree}
+    \bigskip
+    Here we will estimate ancestral states for a binary character conditioned over a fixed tree.\\
+    \bigskip
+        This is not a \alert{generative} model because it does not model the process that
+        generated all our data (which is both the tip data and the tree).\\
+    \bigskip
+    Read in the tree and tip data:\\
+    \bigskip
+    \begin{lstlisting}
+tree_obs <- readTrees("data/phylo.tree")[1]
+morph_data <- readCharacterData("data/phylo_morph.nex")
+    \end{lstlisting}
+    \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+    \begin{block}{Ancestral state estimation conditioned over a tree}
+    \bigskip
+ character state transition rate matrix
+    \bigskip
+    \begin{lstlisting}
+q_01 ~ dnExponential(10)
+q_10 ~ dnExponential(10)
+Q_morph := fnFreeK([q_01, q_10], rescaled=FALSE)
+    \end{lstlisting}
+    \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+    \begin{block}{Ancestral state estimation conditioned over a tree}
+    \bigskip
+ root frequencies:
+    \bigskip
+    \begin{lstlisting}
+pi_morph ~ dnDirichlet([1,1])
+    \end{lstlisting}
+    \bigskip
+the phylogenetic continuous-time Markov process:
+    \bigskip
+    \begin{lstlisting}
+ctmc_morph ~ dnPhyloCTMC(tree_obs, Q=Q_morph, rootFrequencies=pi_morph, nSites=1, type="Standard")
+    \end{lstlisting}
+    \bigskip
+    Before clamping the observed data, look at the simulated values for \texttt{ctmc\_morph}.
+    \bigskip
+    \begin{lstlisting}
+ctmc_morph.clamp(morph_data)
+
+mymodel = model(ctmc_morph)
+    \end{lstlisting}
+  
+    \end{block}
+\end{frame}
 
 
-% walk through setting up MCMC for this model to infer parameters
 
+\begin{frame}[fragile]
+    \begin{block}{Ancestral state estimation conditioned over a tree}
+    \bigskip
+        Now that we have specified our phylogenetic model,
+        just like in the linear regression example we need \alert{moves} and \alert{monitors} 
+        to run the MCMC.
+    \bigskip
+    \begin{lstlisting}
+moves[1] = mvScale(q_01)
+moves[2] = mvScale(q_10)
+moves[3] = mvSimplexElementScale(pi_morph)
+
+monitors[1] = mnScreen(printgen=10)
+monitors[2] = mnModel(printgen=10, filename="output/conditional.log")
+monitors[3] = mnJointConditionalAncestralState(printgen=10, 
+                                               filename="output/conditional_anc.log", 
+                                               tree=tree_obs, 
+                                               ctmc=ctmc_morph, 
+                                               type="Standard")
+    \end{lstlisting}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \begin{block}{Ancestral state estimation conditioned over a tree}
+    \bigskip
+        Run the MCMC:
+    \bigskip
+    \begin{lstlisting}
+mymcmc = mcmc(mymodel, moves, monitors)
+mymcmc.run(10000)
+    \end{lstlisting}
+    \bigskip
+        and summarize the ancestral states:
+    \bigskip
+    \begin{lstlisting}
+anc_trace = readAncestralStateTrace("output/conditional_anc.log")
+ancestralStateTree(tree_obs, 
+                   ancestral_state_trace_vector=anc_trace, 
+                   file="output/map_anc_conditional.tree")
+
+    \end{lstlisting}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \begin{block}{Ancestral state estimation conditioned over a tree}
+    \bigskip
+        \small
+        Take a look at the results in FigTree and note the high
+        posterior probabilities.\\
+    \bigskip
+        This reconstruction does not take phylogenetic uncertainty
+        into account, so it may be an overly confident estimate.\\
+    \bigskip
+        A better approach would be to jointly model the ancestral states
+        and tree inference.\\
+    \bigskip
+        How would we modify this model so that it is
+        a fully \alert{generative} model?\\
+    \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \begin{block}{Ancestral states estimated jointly with the tree!}
+    \bigskip
+        \small
+        We need to add a model of how trees are generated
+        -- the diversification process --
+        perhaps a birth-death process or a coalescent tree prior.\\
+    \bigskip
+        The binary morphological character probably won't help inform the topology
+        and divergence times, so let's use molecular data too. 
+        A molecular data alignment is provided \texttt{data/phylo\_mol.nex}.\\
+    \bigskip
+        We will need a joint model of:
+        \begin{enumerate}
+            \item the diversification process
+            \item morphological character evolution
+            \item molecular character evolution
+        \end{enumerate}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \begin{block}{Ancestral states estimated jointly with the tree!}
+    \bigskip
+        \small
+        \alert{Exercise:} code up an analysis that jointly estimates
+        ancestral states, the tree topology, and divergence times.\\
+    \bigskip
+        Suggestions:
+        \begin{enumerate}
+            \item the diversification process: use \texttt{dnBirthDeath()}
+            \item morphological character evolution: use the model already shown
+            \item molecular character evolution: use \texttt{fnGTR()}
+        \end{enumerate}
+    \bigskip
+        One solution is in \texttt{src/ancestral\_states\_joint.Rev},
+        work through this script if you get stuck.\\
+    \bigskip
+        Ask questions!\\
+    \bigskip
+        Check out the tutorials on \url{http://revbayes.com}\\
+    \end{block}
+\end{frame}
 
 
 \end{document}

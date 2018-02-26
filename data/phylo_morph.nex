@@ -1,0 +1,34 @@
+#NEXUS
+
+Begin data;
+Dimensions ntax=25 nchar=1;
+Format datatype=Standard symbols="0 1" missing=? gap=-;
+Matrix
+sp1   0
+sp10   1
+sp11   0
+sp12   1
+sp13   0
+sp14   0
+sp15   0
+sp16   1
+sp17   0
+sp18   1
+sp19   0
+sp2   1
+sp20   0
+sp21   0
+sp22   1
+sp23   0
+sp24   1
+sp25   1
+sp3   0
+sp4   1
+sp5   1
+sp6   0
+sp7   0
+sp8   0
+sp9   0
+;
+End;
+

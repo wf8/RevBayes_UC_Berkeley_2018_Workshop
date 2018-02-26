@@ -1,0 +1,84 @@
+
+#
+# An example of jointly estimating ancestral states, tree topology, and divergence times.
+#
+# by Will Freyman
+#
+
+
+# read in data
+mol_data <- readCharacterData("data/phylo_mol.nex")
+morph_data <- readCharacterData("data/phylo_morph.nex")
+taxa <- mol_data.taxa()
+
+# constant rate birth death model
+lambda ~ dnExponential(1)
+mu ~ dnExponential(1)
+root_age ~ dnUniform(0, 5)
+psi ~ dnBirthDeath(lambda, mu, root_age, taxa) 
+
+# morphological character transition rate matrix
+q_01 ~ dnExponential(10)
+q_10 ~ dnExponential(10)
+Q_morph := fnFreeK([q_01, q_10], rescaled=FALSE)
+
+# morphological root frequencies
+pi_morph ~ dnDirichlet([1,1])
+
+# morphological phylo CTMC
+ctmc_morph ~ dnPhyloCTMC(psi, Q=Q_morph, rootFrequencies=pi_morph, nSites=1, type="Standard")
+ctmc_morph.clamp(morph_data)
+
+# molecular transition rate matrix
+er ~ dnDirichlet([1,1,1,1,1,1])
+pi ~ dnDirichlet([1,1,1,1])
+Q_mol := fnGTR(er, pi)
+
+# molecular phylo CTMC
+ctmc_mol ~ dnPhyloCTMC(psi, Q=Q_mol, nSites=500, branchRates=0.1, type="DNA")
+ctmc_mol.clamp(mol_data)
+
+mymodel = model(ctmc_morph)
+
+# MCMC moves
+moves[1] = mvNNI(psi)
+moves[2] = mvNarrow(psi)
+moves[3] = mvGPR(psi)
+moves[4] = mvNodeTimeScale(psi)
+moves[5] = mvSubtreeScale(psi)
+moves[6] = mvScale(root_age)
+moves[7] = mvSimplexElementScale(er)
+moves[8] = mvSimplexElementScale(pi)
+moves[9] = mvScale(q_01)
+moves[10] = mvScale(q_10)
+moves[11] = mvSimplexElementScale(pi_morph)
+moves[12] = mvScale(lambda)
+moves[13] = mvScale(mu)
+
+# MCMC monitors
+monitors[1] = mnScreen(printgen=10)
+monitors[2] = mnModel(printgen=10, filename="output/joint.log")
+monitors[3] = mnFile(printgen=10, filename="output/joint.trees", psi)
+monitors[4] = mnJointConditionalAncestralState(printgen=10, 
+                                               filename="output/joint_anc.log", 
+                                               tree=psi, 
+                                               ctmc=ctmc_morph, 
+                                               type="Standard")
+
+# run the MCMC
+mymcmc = mcmc(mymodel, moves, monitors)
+mymcmc.run(10000)
+
+# summarize the MAP tree
+treetrace = readTreeTrace("output/joint.trees", treetype="clock")
+map_tree = mapTree(treetrace,"output/map_joint.tree")
+
+# summarize the MAP ancestral states over the MAP tree
+anc_trace = readAncestralStateTrace("output/joint_anc.log")
+anc_treetrace = readAncestralStateTreeTrace("output/joint.trees", treetype="clock")
+ancestralStateTree(map_tree, 
+                   ancestral_state_trace_vector=anc_trace, 
+                   tree_trace=anc_treetrace, 
+                   file="output/map_anc_joint.tree")
+
+q()

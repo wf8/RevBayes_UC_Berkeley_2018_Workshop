@@ -21,13 +21,13 @@ Please install the latest version (1.0.7) of [RevBayes](http://revbayes.com) for
 
 ### Schedule
 
-* February 26 (noon - 4 PM) [[slides]](https://raw.githubusercontent.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/master/slides/Freyman_RevBayes_Graphical_Models.pdf)
+* **February 26** (noon - 4 PM) [[slides]](https://raw.githubusercontent.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/master/slides/Freyman_RevBayes_Graphical_Models.pdf)
     - What is a graphical model?
     - Discriminative vs generative models
     - Linear regression as a graphical model
     - Ancestral state estimation as a graphical model
     - Linking phylo comparative methods and tree inference through generative graphical models
-* February 27 (noon - 4 PM)
+* **February 27** (noon - 4 PM) [slides coming soon]
     - Diversification models
     - State-dependent speciation and extinction
     - Hidden Markov models and diversification

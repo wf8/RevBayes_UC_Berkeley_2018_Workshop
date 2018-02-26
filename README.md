@@ -16,7 +16,7 @@ Previous experience with [RevBayes](http://revbayes.com) is not necessary, thoug
 
 This workshop is open to anyone interested, including students, staff, post-docs, and faculty from IB and beyond. 
 
-Please install the latest version (1.07) of [RevBayes](http://revbayes.com) for this workshop. Some of the state-dependent speciation and extinction analyses will not work with earlier versions.
+Please install the latest version (1.0.7) of [RevBayes](http://revbayes.com) for this workshop. Some of the state-dependent speciation and extinction analyses will not work with earlier versions.
 
 ### Schedule
 

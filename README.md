@@ -30,7 +30,7 @@ Please install the latest version (1.0.7) of [RevBayes](http://revbayes.com) for
 * **February 27** (noon - 4 PM) 
     - Correlated evolution of discrete characters [[slides]](https://raw.githubusercontent.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/master/slides/Freyman_RevBayes_Correlated_Evolution.pdf)
         - model testing via Bayes factors or reversible-jump MCMC
-    - State-dependent speciation and extinction (BiSSE/MuSSE) [tutorial]](https://raw.githubusercontent.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/master/slides/RB_DiversificationRate_CharacterDependent_Tutorial.pdf)
+    - State-dependent speciation and extinction (BiSSE/MuSSE) [[tutorial]](https://raw.githubusercontent.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/master/slides/RB_DiversificationRate_CharacterDependent_Tutorial.pdf)
     - Hidden Markov models and diversification (HiSSE)
     - Cladogenetic SSE models (ClaSSE) and biogeography (DEC-SSE)
 

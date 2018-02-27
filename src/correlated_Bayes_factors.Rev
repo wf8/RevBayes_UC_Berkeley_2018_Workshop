@@ -1,0 +1,58 @@
+
+#
+# Rev code the for the most general correlated model (1,2,3,4,5,6,7,8)
+# described in Pagel and Meade (2006).
+#
+# by Will Freyman
+#
+
+
+# read in data
+tree_obs <- readTrees("data/phylo.tree")[1]
+morph_data <- readCharacterData("data/correlated.nex")
+
+# character state transition rate matrix
+q_12 ~ dnExponential(10)
+q_13 ~ dnExponential(10)
+q_21 ~ dnExponential(10)
+q_24 ~ dnExponential(10)
+q_31 ~ dnExponential(10)
+q_34 ~ dnExponential(10)
+q_42 ~ dnExponential(10)
+q_43 ~ dnExponential(10)
+Q_morph := fnFreeK([q_12, q_13, 0, q_21, 0, q_24, q_31, 0, q_34, 0, q_42, q_43], rescaled=FALSE)
+
+# root frequencies
+pi_morph ~ dnDirichlet([1,1,1,1])
+
+# phylo CTMC
+ctmc_morph ~ dnPhyloCTMC(tree_obs, Q=Q_morph, rootFrequencies=pi_morph, nSites=1, type="Standard")
+ctmc_morph.clamp(morph_data)
+
+mymodel = model(ctmc_morph)
+
+# moves
+moves[1] = mvScale(q_12)
+moves[2] = mvScale(q_13)
+moves[3] = mvScale(q_21)
+moves[4] = mvScale(q_24)
+moves[5] = mvScale(q_31)
+moves[6] = mvScale(q_34)
+moves[7] = mvScale(q_42)
+moves[8] = mvScale(q_43)
+moves[9] = mvSimplexElementScale(pi_morph)
+
+# monitors
+monitors[1] = mnScreen(printgen=10)
+
+# set up and run power posterior analysis
+pow_p = powerPosterior(mymodel, moves, monitors, "output/correlated.out", cats=50)
+pow_p.burnin(generations=100, tuningInterval=10)
+pow_p.run(generations=100)
+
+# calculate marginal likelihood
+ss = steppingStoneSampler(file="output/correlated.out", 
+                          powerColumnName="power", 
+                          likelihoodColumnName="likelihood")
+ss.marginal()
+q()

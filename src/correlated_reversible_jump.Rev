@@ -1,0 +1,81 @@
+
+#
+# Rev code the for a reversible jump model testing for correlate
+# evolution similar to those described in Pagel and Meade (2006).
+#
+# by Will Freyman
+#
+
+
+# read in data
+tree_obs <- readTrees("data/phylo.tree")[1]
+morph_data <- readCharacterData("data/correlated.nex")
+
+# reversible-jump on rate multipliers so they each have the
+# value 1.0 or a value drawn from a log uniform distribution
+# varying from 0.02 to 55
+m_13 ~ dnReversibleJumpMixture(constantValue=0,
+                               baseDistribution=dnUniform(-4, 4),
+                               p=0.5)
+m_12 ~ dnReversibleJumpMixture(constantValue=0,
+                               baseDistribution=dnUniform(-4, 4),
+                               p=0.5)
+m_31 ~ dnReversibleJumpMixture(constantValue=0,
+                               baseDistribution=dnUniform(-4, 4),
+                               p=0.5)
+m_21 ~ dnReversibleJumpMixture(constantValue=0,
+                               baseDistribution=dnUniform(-4, 4),
+                               p=0.5)
+
+# deterministic nodes to monitor posterior probabilities of each 
+# transition being dependent (correlated) as opposed to independent
+cor_13_24 := ifelse(m_13 != 0, 1, 0)
+cor_12_34 := ifelse(m_12 != 0, 1, 0)
+cor_31_42 := ifelse(m_31 != 0, 1, 0)
+cor_21_43 := ifelse(m_21 != 0, 1, 0)
+
+# character state transition rate matrix
+q_12 ~ dnExponential(10)
+q_13 ~ dnExponential(10)
+q_21 ~ dnExponential(10)
+q_24 := q_13 * exp(m_13)
+q_31 ~ dnExponential(10)
+q_34 := q_12 * exp(m_12)
+q_42 := q_31 * exp(m_31)
+q_43 := q_21 * exp(m_21)
+Q_morph := fnFreeK([q_12, q_13, 0, q_21, 0, q_24, q_31, 0, q_34, 0, q_42, q_43], rescaled=FALSE)
+
+# root frequencies
+pi_morph ~ dnDirichlet([1,1,1,1])
+
+# phylo CTMC
+ctmc_morph ~ dnPhyloCTMC(tree_obs, Q=Q_morph, rootFrequencies=pi_morph, nSites=1, type="Standard")
+ctmc_morph.clamp(morph_data)
+
+mymodel = model(ctmc_morph)
+
+# moves
+moves[1] = mvScale(q_12)
+moves[2] = mvScale(q_13)
+moves[3] = mvScale(q_21)
+moves[4] = mvScale(q_31)
+moves[5] = mvSimplexElementScale(pi_morph)
+
+moves[6] = mvSlide(m_13)
+moves[7] = mvSlide(m_12)
+moves[8] = mvSlide(m_31)
+moves[9] = mvSlide(m_21)
+moves[10] = mvRJSwitch(m_13)
+moves[11] = mvRJSwitch(m_12)
+moves[12] = mvRJSwitch(m_31)
+moves[13] = mvRJSwitch(m_21)
+
+# monitors
+monitors[1] = mnScreen(printgen=10)
+monitors[2] = mnModel(printgen=10, filename="output/correlated_reversible_jump.log")
+
+# run the MCMC
+mymcmc = mcmc(mymodel, moves, monitors)
+mymcmc.run(5000)
+
+q()

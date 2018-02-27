@@ -27,8 +27,8 @@ Please install the latest version (1.0.7) of [RevBayes](http://revbayes.com) for
     - Linear regression as a graphical model
     - Ancestral state estimation as a graphical model
     - Linking phylo comparative methods and tree inference through generative graphical models
-* **February 27** (noon - 4 PM) [slides coming soon]
-    - Correlated evolution of discrete characters 
+* **February 27** (noon - 4 PM) 
+    - Correlated evolution of discrete characters [[slides]](https://raw.githubusercontent.com/wf8/RevBayes_UC_Berkeley_2018_Workshop/master/slides/Freyman_RevBayes_Correlated_Evolution.pdf)
         - model testing via Bayes factors or reversible-jump MCMC
     - State-dependent speciation and extinction (BiSSE/MuSSE)
     - Hidden Markov models and diversification (HiSSE)

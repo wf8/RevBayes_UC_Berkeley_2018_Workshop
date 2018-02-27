@@ -28,9 +28,11 @@ Please install the latest version (1.0.7) of [RevBayes](http://revbayes.com) for
     - Ancestral state estimation as a graphical model
     - Linking phylo comparative methods and tree inference through generative graphical models
 * **February 27** (noon - 4 PM) [slides coming soon]
-    - Diversification models
-    - State-dependent speciation and extinction
-    - Hidden Markov models and diversification
+    - Correlated evolution of discrete characters 
+        - model testing via Bayes factors or reversible-jump MCMC
+    - State-dependent speciation and extinction (BiSSE/MuSSE)
+    - Hidden Markov models and diversification (HiSSE)
+    - cladogenetic SSE models (ClaSSE) and biogeography
     - Other models?
 
 ### Scripts and data

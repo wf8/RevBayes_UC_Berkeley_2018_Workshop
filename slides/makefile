@@ -1,5 +1,5 @@
-#PROJECT=Freyman_RevBayes_Graphical_Models
-PROJECT=Freyman_RevBayes_Correlated_Evolution
+PROJECT=Freyman_RevBayes_Graphical_Models
+#PROJECT=Freyman_RevBayes_Correlated_Evolution
 
 all:
 	pdflatex $(PROJECT).tex
